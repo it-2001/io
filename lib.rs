@@ -23,119 +23,198 @@ impl runtime::runtime::Library for Foo {
         match id {
             // std::print
             0 => {
-                if let Types::Pointer(u_size, PointerTypes::String) = m.registers[runtime_types::POINTER_REG] {
+                if let Types::Pointer(u_size, PointerTypes::String) =
+                    m.registers[runtime_types::POINTER_REG]
+                {
                     let mut string = String::new();
                     for i in m.strings.pool[u_size].iter() {
                         string.push(*i);
                     }
                     print!("{}", string);
                 } else {
-                    return Err(runtime_error::ErrTypes::Message("Invalid argument".to_owned()));
+                    return Err(runtime_error::ErrTypes::Message(
+                        "Invalid argument".to_owned(),
+                    ));
                 }
             }
             // std::println
             1 => {
-                if let Types::Pointer(u_size, PointerTypes::String) = m.registers[runtime_types::POINTER_REG] {
+                if let Types::Pointer(u_size, PointerTypes::String) =
+                    m.registers[runtime_types::POINTER_REG]
+                {
                     let mut string = String::new();
                     for i in m.strings.pool[u_size].iter() {
                         string.push(*i);
                     }
                     println!("{}", string);
                 } else {
-                    return Err(runtime_error::ErrTypes::Message("Invalid argument".to_owned()));
+                    return Err(runtime_error::ErrTypes::Message(
+                        "Invalid argument".to_owned(),
+                    ));
                 }
             }
             // std::read
             2 => {
                 let mut input = String::new();
                 match std::io::stdin().read_line(&mut input) {
-                    Err(why) => return Err(runtime_error::ErrTypes::Message(format!("Couldn't read line: {}", why))),
+                    Err(why) => {
+                        return Err(runtime_error::ErrTypes::Message(format!(
+                            "Couldn't read line: {}",
+                            why
+                        )))
+                    }
                     Ok(_) => (),
                 }
                 m.strings.pool.push(input.chars().collect());
-                return Ok(Types::Pointer(m.strings.pool.len() - 1, PointerTypes::String));
+                return Ok(Types::Pointer(
+                    m.strings.pool.len() - 1,
+                    PointerTypes::String,
+                ));
             }
             // std::file_read
             3 => {
-                use std::io::prelude::*;
                 use std::fs::File;
-                if let Types::Pointer(u_size, PointerTypes::String) = m.registers[runtime_types::POINTER_REG] {
+                use std::io::prelude::*;
+                if let Types::Pointer(u_size, PointerTypes::String) =
+                    m.registers[runtime_types::POINTER_REG]
+                {
                     let string = m.strings.to_string(u_size);
                     let mut file = match File::open(string) {
-                        Err(why) => return Err(runtime_error::ErrTypes::Message(format!("Couldn't open file: {}", why))),
+                        Err(why) => {
+                            return Err(runtime_error::ErrTypes::Message(format!(
+                                "Couldn't open file: {}",
+                                why
+                            )))
+                        }
                         Ok(file) => file,
                     };
                     let mut contents = String::new();
                     match file.read_to_string(&mut contents) {
-                        Err(why) => return Err(runtime_error::ErrTypes::Message(format!("Couldn't read file: {}", why))),
+                        Err(why) => {
+                            return Err(runtime_error::ErrTypes::Message(format!(
+                                "Couldn't read file: {}",
+                                why
+                            )))
+                        }
                         Ok(_) => (),
                     }
                     m.strings.pool.push(contents.chars().collect());
-                    return Ok(Types::Pointer(m.strings.pool.len() - 1, PointerTypes::String));
+                    return Ok(Types::Pointer(
+                        m.strings.pool.len() - 1,
+                        PointerTypes::String,
+                    ));
                 } else {
-                    return Err(runtime_error::ErrTypes::Message("Invalid argument".to_owned()));
+                    return Err(runtime_error::ErrTypes::Message(
+                        "Invalid argument".to_owned(),
+                    ));
                 }
             }
             // std::file_write
             4 => {
-                use std::io::prelude::*;
                 use std::fs::File;
-                if let Types::Pointer(u_size, PointerTypes::String) = m.registers[runtime_types::POINTER_REG] {
+                use std::io::prelude::*;
+                if let Types::Pointer(u_size, PointerTypes::String) =
+                    m.registers[runtime_types::POINTER_REG]
+                {
                     let string = m.strings.to_string(u_size);
                     let mut file = match File::create(string) {
-                        Err(why) => return Err(runtime_error::ErrTypes::Message(format!("Couldn't create file: {}", why))),
+                        Err(why) => {
+                            return Err(runtime_error::ErrTypes::Message(format!(
+                                "Couldn't create file: {}",
+                                why
+                            )))
+                        }
                         Ok(file) => file,
                     };
-                    if let Types::Pointer(u_size, PointerTypes::String) = m.registers[runtime_types::GENERAL_REG1] {
+                    if let Types::Pointer(u_size, PointerTypes::String) =
+                        m.registers[runtime_types::GENERAL_REG1]
+                    {
                         let string = m.strings.to_string(u_size);
                         match file.write_all(string.as_bytes()) {
-                            Err(why) => return Err(runtime_error::ErrTypes::Message(format!("Couldn't write to file: {}", why))),
+                            Err(why) => {
+                                return Err(runtime_error::ErrTypes::Message(format!(
+                                    "Couldn't write to file: {}",
+                                    why
+                                )))
+                            }
                             Ok(_) => (),
                         }
                     } else {
-                        return Err(runtime_error::ErrTypes::Message("Invalid argument".to_owned()));
+                        return Err(runtime_error::ErrTypes::Message(
+                            "Invalid argument".to_owned(),
+                        ));
                     }
                 } else {
-                    return Err(runtime_error::ErrTypes::Message("Invalid argument".to_owned()));
+                    return Err(runtime_error::ErrTypes::Message(
+                        "Invalid argument".to_owned(),
+                    ));
                 }
             }
             // std::file_append
             5 => {
-                use std::io::prelude::*;
                 use std::fs::OpenOptions;
-                if let Types::Pointer(u_size, PointerTypes::String) = m.registers[runtime_types::POINTER_REG] {
+                use std::io::prelude::*;
+                if let Types::Pointer(u_size, PointerTypes::String) =
+                    m.registers[runtime_types::POINTER_REG]
+                {
                     let string = m.strings.to_string(u_size);
                     let mut file = match OpenOptions::new().append(true).open(string) {
-                        Err(why) => return Err(runtime_error::ErrTypes::Message(format!("Couldn't open file: {}", why))),
+                        Err(why) => {
+                            return Err(runtime_error::ErrTypes::Message(format!(
+                                "Couldn't open file: {}",
+                                why
+                            )))
+                        }
                         Ok(file) => file,
                     };
-                    if let Types::Pointer(u_size, PointerTypes::String) = m.registers[runtime_types::GENERAL_REG1] {
+                    if let Types::Pointer(u_size, PointerTypes::String) =
+                        m.registers[runtime_types::GENERAL_REG1]
+                    {
                         let string = m.strings.to_string(u_size);
                         match file.write_all(string.as_bytes()) {
-                            Err(why) => return Err(runtime_error::ErrTypes::Message(format!("Couldn't write to file: {}", why))),
+                            Err(why) => {
+                                return Err(runtime_error::ErrTypes::Message(format!(
+                                    "Couldn't write to file: {}",
+                                    why
+                                )))
+                            }
                             Ok(_) => (),
                         }
                     } else {
-                        return Err(runtime_error::ErrTypes::Message(format!("String pointer expected, got {:#}", m.registers[runtime_types::GENERAL_REG1])));
+                        return Err(runtime_error::ErrTypes::Message(format!(
+                            "String pointer expected, got {:#}",
+                            m.registers[runtime_types::GENERAL_REG1]
+                        )));
                     }
                 } else {
-                    return Err(runtime_error::ErrTypes::Message("Invalid argument".to_owned()));
+                    return Err(runtime_error::ErrTypes::Message(
+                        "Invalid argument".to_owned(),
+                    ));
                 }
             }
             // std::file_open
             // returns index of file handle
             6 => {
                 use std::fs::File;
-                if let Types::Pointer(u_size, PointerTypes::String) = m.registers[runtime_types::POINTER_REG] {
+                if let Types::Pointer(u_size, PointerTypes::String) =
+                    m.registers[runtime_types::POINTER_REG]
+                {
                     let string = m.strings.to_string(u_size);
                     let file = match File::open(string) {
-                        Err(why) => return Err(runtime_error::ErrTypes::Message(format!("Couldn't open file: {}", why))),
+                        Err(why) => {
+                            return Err(runtime_error::ErrTypes::Message(format!(
+                                "Couldn't open file: {}",
+                                why
+                            )))
+                        }
                         Ok(file) => file,
                     };
                     self.file_handles.push(Some(file));
                     return Ok(Types::Usize(self.file_handles.len() - 1));
                 } else {
-                    return Err(runtime_error::ErrTypes::Message("Invalid argument".to_owned()));
+                    return Err(runtime_error::ErrTypes::Message(
+                        "Invalid argument".to_owned(),
+                    ));
                 }
             }
             // std::file_close
@@ -144,14 +223,21 @@ impl runtime::runtime::Library for Foo {
             7 => {
                 if let Types::Usize(u_size) = m.registers[runtime_types::POINTER_REG] {
                     if u_size >= self.file_handles.len() {
-                        return Err(runtime_error::ErrTypes::Message("Invalid file handle".to_owned()));
+                        return Err(runtime_error::ErrTypes::Message(
+                            "Invalid file handle".to_owned(),
+                        ));
                     }
                     if self.file_handles[u_size].is_none() {
-                        return Err(runtime_error::ErrTypes::Message("File handle already closed".to_owned()));
+                        return Err(runtime_error::ErrTypes::Message(
+                            "File handle already closed".to_owned(),
+                        ));
                     }
                     self.file_handles[u_size] = None;
                 } else {
-                    return Err(runtime_error::ErrTypes::Message(format!("File handle must be usize, got {:#}", m.registers[runtime_types::POINTER_REG])));
+                    return Err(runtime_error::ErrTypes::Message(format!(
+                        "File handle must be usize, got {:#}",
+                        m.registers[runtime_types::POINTER_REG]
+                    )));
                 }
             }
             // std::handle_read
@@ -161,21 +247,36 @@ impl runtime::runtime::Library for Foo {
                 use std::io::prelude::*;
                 if let Types::Usize(u_size) = m.registers[runtime_types::POINTER_REG] {
                     if u_size >= self.file_handles.len() {
-                        return Err(runtime_error::ErrTypes::Message("Invalid file handle".to_owned()));
+                        return Err(runtime_error::ErrTypes::Message(
+                            "Invalid file handle".to_owned(),
+                        ));
                     }
                     if self.file_handles[u_size].is_none() {
-                        return Err(runtime_error::ErrTypes::Message("File handle already closed".to_owned()));
+                        return Err(runtime_error::ErrTypes::Message(
+                            "File handle already closed".to_owned(),
+                        ));
                     }
                     let mut file = self.file_handles[u_size].as_ref().unwrap();
                     let mut contents = String::new();
                     match file.read_to_string(&mut contents) {
-                        Err(why) => return Err(runtime_error::ErrTypes::Message(format!("Couldn't read file: {}", why))),
+                        Err(why) => {
+                            return Err(runtime_error::ErrTypes::Message(format!(
+                                "Couldn't read file: {}",
+                                why
+                            )))
+                        }
                         Ok(_) => (),
                     }
                     m.strings.pool.push(contents.chars().collect());
-                    return Ok(Types::Pointer(m.strings.pool.len() - 1, PointerTypes::String));
+                    return Ok(Types::Pointer(
+                        m.strings.pool.len() - 1,
+                        PointerTypes::String,
+                    ));
                 } else {
-                    return Err(runtime_error::ErrTypes::Message(format!("File handle must be usize, got {:#}", m.registers[runtime_types::POINTER_REG])));
+                    return Err(runtime_error::ErrTypes::Message(format!(
+                        "File handle must be usize, got {:#}",
+                        m.registers[runtime_types::POINTER_REG]
+                    )));
                 }
             }
             // std::handle_write
@@ -185,23 +286,40 @@ impl runtime::runtime::Library for Foo {
                 use std::io::prelude::*;
                 if let Types::Usize(u_size) = m.registers[runtime_types::POINTER_REG] {
                     if u_size >= self.file_handles.len() {
-                        return Err(runtime_error::ErrTypes::Message("Invalid file handle".to_owned()));
+                        return Err(runtime_error::ErrTypes::Message(
+                            "Invalid file handle".to_owned(),
+                        ));
                     }
                     if self.file_handles[u_size].is_none() {
-                        return Err(runtime_error::ErrTypes::Message("File handle already closed".to_owned()));
+                        return Err(runtime_error::ErrTypes::Message(
+                            "File handle already closed".to_owned(),
+                        ));
                     }
                     let mut file = self.file_handles[u_size].as_ref().unwrap();
-                    if let Types::Pointer(u_size, PointerTypes::String) = m.registers[runtime_types::GENERAL_REG1] {
+                    if let Types::Pointer(u_size, PointerTypes::String) =
+                        m.registers[runtime_types::GENERAL_REG1]
+                    {
                         let string = m.strings.to_string(u_size);
                         match file.write_all(string.as_bytes()) {
-                            Err(why) => return Err(runtime_error::ErrTypes::Message(format!("Couldn't write to file: {}", why))),
+                            Err(why) => {
+                                return Err(runtime_error::ErrTypes::Message(format!(
+                                    "Couldn't write to file: {}",
+                                    why
+                                )))
+                            }
                             Ok(_) => (),
                         }
                     } else {
-                        return Err(runtime_error::ErrTypes::Message(format!("String pointer expected, got {:#}", m.registers[runtime_types::GENERAL_REG1])));
+                        return Err(runtime_error::ErrTypes::Message(format!(
+                            "String pointer expected, got {:#}",
+                            m.registers[runtime_types::GENERAL_REG1]
+                        )));
                     }
                 } else {
-                    return Err(runtime_error::ErrTypes::Message(format!("File handle must be usize, got {:#}", m.registers[runtime_types::POINTER_REG])));
+                    return Err(runtime_error::ErrTypes::Message(format!(
+                        "File handle must be usize, got {:#}",
+                        m.registers[runtime_types::POINTER_REG]
+                    )));
                 }
             }
             // std::handle_append
@@ -211,23 +329,40 @@ impl runtime::runtime::Library for Foo {
                 use std::io::prelude::*;
                 if let Types::Usize(u_size) = m.registers[runtime_types::POINTER_REG] {
                     if u_size >= self.file_handles.len() {
-                        return Err(runtime_error::ErrTypes::Message("Invalid file handle".to_owned()));
+                        return Err(runtime_error::ErrTypes::Message(
+                            "Invalid file handle".to_owned(),
+                        ));
                     }
                     if self.file_handles[u_size].is_none() {
-                        return Err(runtime_error::ErrTypes::Message("File handle already closed".to_owned()));
+                        return Err(runtime_error::ErrTypes::Message(
+                            "File handle already closed".to_owned(),
+                        ));
                     }
                     let mut file = self.file_handles[u_size].as_ref().unwrap();
-                    if let Types::Pointer(u_size, PointerTypes::String) = m.registers[runtime_types::GENERAL_REG1] {
+                    if let Types::Pointer(u_size, PointerTypes::String) =
+                        m.registers[runtime_types::GENERAL_REG1]
+                    {
                         let string = m.strings.to_string(u_size);
                         match file.write_all(string.as_bytes()) {
-                            Err(why) => return Err(runtime_error::ErrTypes::Message(format!("Couldn't write to file: {}", why))),
+                            Err(why) => {
+                                return Err(runtime_error::ErrTypes::Message(format!(
+                                    "Couldn't write to file: {}",
+                                    why
+                                )))
+                            }
                             Ok(_) => (),
                         }
                     } else {
-                        return Err(runtime_error::ErrTypes::Message(format!("String pointer expected, got {:#}", m.registers[runtime_types::GENERAL_REG1])));
+                        return Err(runtime_error::ErrTypes::Message(format!(
+                            "String pointer expected, got {:#}",
+                            m.registers[runtime_types::GENERAL_REG1]
+                        )));
                     }
                 } else {
-                    return Err(runtime_error::ErrTypes::Message(format!("File handle must be usize, got {:#}", m.registers[runtime_types::POINTER_REG])));
+                    return Err(runtime_error::ErrTypes::Message(format!(
+                        "File handle must be usize, got {:#}",
+                        m.registers[runtime_types::POINTER_REG]
+                    )));
                 }
             }
             // std::args
@@ -236,7 +371,7 @@ impl runtime::runtime::Library for Foo {
                 // first get a vector of args
                 let args: Vec<String> = std::env::args().collect();
                 // allocate enough space for the array on the heap
-                let obj =  m.allocate_obj(args.len() + 1);
+                let obj = m.allocate_obj(args.len() + 1);
                 // set the first element to the length of the array
                 m.heap.data[obj][0] = Types::NonPrimitive(0);
                 // iterate over the args
@@ -265,5 +400,7 @@ impl runtime::runtime::Library for Foo {
 
 #[no_mangle]
 pub fn init(ctx: &mut Context) -> Box<dyn Library> {
-    return Box::new(Foo { file_handles: Vec::new() });
+    return Box::new(Foo {
+        file_handles: Vec::new(),
+    });
 }
