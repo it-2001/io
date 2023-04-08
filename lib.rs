@@ -1,3 +1,13 @@
+/**
+ * Looks intimidating, ik
+ *
+ * to find the actual code, look for the match statement
+ * or just ctrl+f for "std::<function>"
+ *
+ * there is no official documentation for writing Rusty danda libraries at the time of writing this
+ * for more information, please refer to my github www.github.com/it-2001
+ *
+ */
 extern crate runtime;
 
 use std::env::args;
