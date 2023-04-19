@@ -12,23 +12,23 @@ extern crate runtime;
 
 use std::env::args;
 
-use runtime::runtime::runtime_types::Context;
-use runtime::runtime::runtime_types::PointerTypes;
-use runtime::runtime::runtime_types::PublicData;
-use runtime::runtime::runtime_types::Types;
-use runtime::runtime::runtime_types::*;
-use runtime::runtime::*;
+use runtime::runtime_types::Context;
+use runtime::runtime_types::PointerTypes;
+use runtime::runtime_types::PublicData;
+use runtime::runtime_types::Types;
+use runtime::runtime_types::*;
+use runtime::*;
 
 pub struct Foo {
     file_handles: Vec<Option<std::fs::File>>,
 }
 
-impl runtime::runtime::Library for Foo {
+impl runtime::Library for Foo {
     fn call(
         &mut self,
         id: usize,
         mem: PublicData,
-    ) -> Result<runtime_types::Types, runtime_error::ErrTypes> {
+    ) -> Result<Types, runtime_error::ErrTypes> {
         let m = mem.memory;
         match id {
             // std::print
