@@ -10,12 +10,6 @@
  */
 extern crate runtime;
 
-use std::env::args;
-
-use runtime::runtime_types::Context;
-use runtime::runtime_types::PointerTypes;
-use runtime::runtime_types::PublicData;
-use runtime::runtime_types::Types;
 use runtime::runtime_types::*;
 use runtime::*;
 
@@ -23,7 +17,7 @@ pub struct Foo {
     file_handles: Vec<Option<std::fs::File>>,
 }
 
-impl runtime::Library for Foo {
+impl lib::Library for Foo {
     fn call(
         &mut self,
         id: usize,
@@ -404,12 +398,34 @@ impl runtime::Library for Foo {
         return "Foo".to_owned();
     }
     fn register(&self) -> Vec<(String, usize)> {
-        return vec![];
+        return vec![
+            // type File stored as usize in VM of size 1
+            ("type File: usize".to_owned(), 1),
+
+            // functions 
+            // <name>(list of arguments<name=memory_container>)?!: return type
+            // ! means that the function can throw an error
+            // ? means that the function can return null
+            // if the function uses only registers, then calling it wont resize the stack and new stack frame wont be created if possible
+            // if it doesnt need any arguments then it wont spawn a new stack frame
+            ("print(msg=reg.ptr: string)".to_owned(), 0),
+            ("println(msg=reg.ptr: string)".to_owned(), 1),
+            ("read(): string".to_owned(), 2),
+            ("fileRead(fileName=reg.ptr: string)".to_owned(), 3),
+            ("fileWrite(fileName=reg.ptr: string, data=reg.G1: string)!".to_string(), 4),
+            ("fileAppend(fileName=reg.ptr: string, data=reg.G1: string)!".to_string(), 5),
+            ("fileOpen(file=reg.ptr: string): File".to_string(), 6),
+            ("fileClose(file=reg.ptr: File)!".to_string(), 7),
+            ("readHandle(file=reg.ptr)!: string".to_string(), 8),
+            ("writeHandle(file=reg.ptr, data=reg.G1: string)!".to_string(), 9),
+            ("appendHandle(file=reg.ptr, data=reg.G1: string)!".to_string(), 10),
+            ("args(): &[string; _]".to_owned(), 11),
+        ];
     }
 }
 
 #[no_mangle]
-pub fn init(ctx: &mut Context) -> Box<dyn Library> {
+pub fn init(ctx: &mut Context) -> Box<dyn lib::Library> {
     return Box::new(Foo {
         file_handles: Vec::new(),
     });
