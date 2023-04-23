@@ -15,6 +15,7 @@ use runtime::*;
 
 pub struct Foo {
     file_handles: Vec<Option<std::fs::File>>,
+    id: usize,
 }
 
 impl lib::Library for Foo {
@@ -395,38 +396,36 @@ impl lib::Library for Foo {
         return Ok(runtime_types::Types::Void);
     }
     fn name(&self) -> String {
-        return "Foo".to_owned();
+        return "io".to_owned();
     }
-    fn register(&self) -> Vec<(String, usize)> {
-        return vec![
-            // type File stored as usize in VM of size 1
-            ("type File: usize".to_owned(), 1),
+    fn register(&self) -> lib::RegisterData {
+        return lib::RegisterData::new().set_rest(r#"
+        type File: usize
 
-            // functions 
-            // <name>(list of arguments<name=memory_container>)?!: return type
-            // ! means that the function can throw an error
-            // ? means that the function can return null
-            // if the function uses only registers, then calling it wont resize the stack and new stack frame wont be created if possible
-            // if it doesnt need any arguments then it wont spawn a new stack frame
-            ("print(msg=reg.ptr: string)".to_owned(), 0),
-            ("println(msg=reg.ptr: string)".to_owned(), 1),
-            ("read(): string".to_owned(), 2),
-            ("fileRead(fileName=reg.ptr: string)".to_owned(), 3),
-            ("fileWrite(fileName=reg.ptr: string, data=reg.G1: string)!".to_string(), 4),
-            ("fileAppend(fileName=reg.ptr: string, data=reg.G1: string)!".to_string(), 5),
-            ("fileOpen(file=reg.ptr: string): File".to_string(), 6),
-            ("fileClose(file=reg.ptr: File)!".to_string(), 7),
-            ("readHandle(file=reg.ptr)!: string".to_string(), 8),
-            ("writeHandle(file=reg.ptr, data=reg.G1: string)!".to_string(), 9),
-            ("appendHandle(file=reg.ptr, data=reg.G1: string)!".to_string(), 10),
-            ("args(): &[string; _]".to_owned(), 11),
-        ];
+        impl File {
+            fun read(): string > 8
+            fun write(data=reg.G1:string)! > 9
+            fun append(data=reg.G1:string)! > 10
+            fun close()! > 7
+        }
+
+        fun print(msg=reg.ptr: string) > 0
+        fun println(msg=reg.ptr: string) > 1
+        fun input(): string > 2
+        fun fileRead(fileName=reg.ptr: string): string > 3
+        fun fileWrite(fileName=reg.ptr: string, data=reg.G1: string)! > 4
+        fun fileAppend(fileName=reg.ptr: string, data=reg.G1: string)! > 5
+        fun fileOpen(fileName=reg.ptr: string)!: File > 6
+        fun args(): &[string: _] > 11
+
+        "#.to_string())
     }
 }
 
 #[no_mangle]
-pub fn init(ctx: &mut Context) -> Box<dyn lib::Library> {
+pub fn init(ctx: &mut Context, my_id: usize) -> Box<dyn lib::Library> {
     return Box::new(Foo {
         file_handles: Vec::new(),
+        id: my_id,
     });
 }
