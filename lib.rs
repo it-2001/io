@@ -2,10 +2,10 @@
  * Looks intimidating, ik
  *
  * to find the actual code, look for the match statement
- * or just ctrl+f for "std::<function>"
+ * or just ctrl+f for "std::print" or whatever you want to find
  *
  * there is no official documentation for writing Rusty danda libraries at the time of writing this
- * for more information, please refer to my github www.github.com/it-2001
+ * for more information, please refer to the main repository www.github.com/it-2001/Rusty-compiler
  *
  */
 extern crate runtime;
@@ -400,13 +400,13 @@ impl lib::Library for Foo {
     }
     fn register(&self) -> lib::RegisterData {
         return lib::RegisterData::new().set_rest(r#"
-        type File: usize
+        type File = usize
 
         impl File {
-            fun read(): string > 8
-            fun write(data=reg.G1:string)! > 9
-            fun append(data=reg.G1:string)! > 10
-            fun close()! > 7
+            fun read(&self=reg.ptr): string > 8
+            fun write(&self=reg.ptr, data=reg.G1:string)! > 9
+            fun append(&self=reg.ptr, data=reg.G1:string)! > 10
+            fun close(&self=reg.ptr)! > 7
         }
 
         fun print(msg=reg.ptr: string) > 0
